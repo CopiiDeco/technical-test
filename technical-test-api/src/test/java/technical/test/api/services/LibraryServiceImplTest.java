@@ -7,12 +7,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.utility.DockerImageName;
 import reactor.test.StepVerifier;
 import technical.test.api.TestSupport;
+import technical.test.api.storage.repositories.AuthorRepository;
 import technical.test.api.storage.repositories.BookRepository;
 
 @RunWith(SpringRunner.class)
@@ -25,7 +28,14 @@ class LibraryServiceImplTest {
     @Resource
     TestSupport testSupport;
 
-    final static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:5"));
+    static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:5");
+    @Autowired
+    private AuthorRepository authorRepository;
+
+    @DynamicPropertySource
+    static void setProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.mongodb.uri", () -> mongoDBContainer.getReplicaSetUrl("embedded"));
+    }
 
     @BeforeAll
     static void prepare() {
@@ -35,15 +45,16 @@ class LibraryServiceImplTest {
     @AfterEach
     void clear() {
         bookRepository.deleteAll().block();
+        authorRepository.deleteAll().block();
     }
 
     @Test
     void registerAuthor() {
         StepVerifier.create(libraryServiceImpl.registerAuthor("Isaac","Asimov", 1920))
                 .expectSubscription()
-                .expectNextMatches(author -> author.getBirthdate() == 1920
-                        && author.getFirstname().equals("Isaac")
-                        && author.getLastname().equals("Asimov")
+                .expectNextMatches(author -> author.getBirthDate().equals(1920)
+                        && author.getFirstName().equals("Isaac")
+                        && author.getLastName().equals("Asimov")
                         && author.getId().equals("isaac_asimov"))
                 .verifyComplete();
     }

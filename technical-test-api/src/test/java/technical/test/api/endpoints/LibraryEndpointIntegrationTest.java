@@ -9,14 +9,16 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.mongodb.core.ReactiveMongoOperations;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.testcontainers.containers.MongoDBContainer;
 import technical.test.api.TestSupport;
 import technical.test.api.representations.AuthorRepresentation;
 import technical.test.api.representations.BookRepresentation;
-import technical.test.api.storage.models.Author;
-import technical.test.api.storage.models.Book;
+import technical.test.api.storage.repositories.AuthorRepository;
+import technical.test.api.storage.repositories.BookRepository;
 
 import java.util.List;
 
@@ -28,25 +30,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LibraryEndpointIntegrationTest {
     @Autowired
     private WebTestClient webTestClient;
+
     @Autowired
-    private ReactiveMongoOperations reactiveMongoOperations;
+    private BookRepository bookRepository;
+    @Autowired
+    private AuthorRepository authorRepository;
 
     @Resource
     TestSupport testSupport;
 
+    static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:5");
+
+    @DynamicPropertySource
+    static void setProperties(DynamicPropertyRegistry registry) {
+        mongoDBContainer.start();
+        registry.add("spring.data.mongodb.uri", () -> mongoDBContainer.getReplicaSetUrl("embedded"));
+    }
+
     @Before
     public void cleanup() {
-        reactiveMongoOperations.dropCollection(Book.class).block();
-        reactiveMongoOperations.dropCollection(Author.class).block();
+        bookRepository.deleteAll().block();
+        authorRepository.deleteAll().block();
     }
 
     @Test
     public void given_author_should_add_entry_in_database() {
         // Given
         AuthorRepresentation author = AuthorRepresentation.builder()
-                .firstname("isaac")
-                .lastname("asimov")
-                .birthdate(1920)
+                .firstName("isaac")
+                .lastName("asimov")
+                .birthDate(1920)
                 .id("isaac_asimov")
                 .build();
 
@@ -66,7 +79,7 @@ public class LibraryEndpointIntegrationTest {
                 .getResponseBody();
 
         // Then
-        assertThat(authorRepresentationResponse).isEqualTo(author);
+        assertThat(authorRepresentationResponse).usingRecursiveComparison().isEqualTo(author);
     }
 
     @Test
@@ -96,7 +109,7 @@ public class LibraryEndpointIntegrationTest {
                 .getResponseBody();
 
         // Then
-        assertThat(bookRepresentationResponse).isEqualTo(book);
+        assertThat(bookRepresentationResponse).usingRecursiveComparison().isEqualTo(book);
     }
 
     @Test
