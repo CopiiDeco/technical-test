@@ -19,14 +19,23 @@ public class LibraryServiceImpl implements LibraryService {
 
     @Override
     public Mono<Author> registerAuthor(String firstName, String lastName, int birthDate) {
+        //TODO: add control on data (empty values, existing in db,...)
+
         //we concat the first and last name to create the id
         //we use an underscore as separator and we convert everything to lowercase
         String id = (firstName + "_" + lastName).toLowerCase();
+
         return authorRepository.save(Author.builder().firstName(firstName).lastName(lastName).birthDate(birthDate).id(id).build());
     }
 
     @Override
+    public Mono<Author> registerAuthor(String firstname, String lastname, String birthdate) {
+        return registerAuthor(firstname, lastname, Integer.parseInt(birthdate));
+    }
+
+    @Override
     public Mono<Book> registerBook(String isbn, String title, int releaseDate, String authorId) {
+        //TODO: add control on data (empty values, existing in db,...)
         return bookRepository.save(Book.builder().isbn(isbn).title(title).releaseDate(releaseDate).authorId(authorId).build());
     }
 

@@ -6,15 +6,15 @@ import BooksList from "@/components/BooksList.vue";
 <template>
 <h1>Welcome to your favorite library</h1>
   <!-- the add book form here -->
-  <form>
+  <form v-model="form">
     <label for="title">Title:</label>
     <input type="text" id="title" name="title">
     <label for="author">Author:</label>
-    <input type="text" id="author" name="author">
+    <input type="text" id="authorId" name="authorId">
     <label for="isbn">ISBN:</label>
     <input type="text" id="isbn" name="isbn">
     <label for="date">Date:</label>
-    <input type="text" id="date" name="date">
+    <input type="text" id="releaseDate" name="releaseDate">
     <button @click="submitForm">Add book</button>
   </form>
   <!-- the list of books here -->
@@ -35,15 +35,23 @@ export default {
     };
   },
   methods: {
-    async submitForm() {
+    async submitForm(form) {
       await fetch("http://localhost:18080/library/books", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          'Access-Control-Allow-Origin': '*',
         },
-        body: JSON.stringify(this.form),
+        body: JSON.stringify(form),
       });
-      const response = await fetch("http://localhost:18080/library/books");
+      const response = await fetch("http://localhost:18080/library/books",
+          //handle cors
+          {
+            mode: 'cors',
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Content-Type': 'application/json',
+            }});
       this.books = await response.json();
     },
   },

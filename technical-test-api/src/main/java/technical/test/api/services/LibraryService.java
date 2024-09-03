@@ -8,6 +8,7 @@ import technical.test.api.storage.models.Book;
 public interface LibraryService {
 
     Mono<Author> registerAuthor(String firstname, String lastname, int birthdate);
+    Mono<Author> registerAuthor(String firstname, String lastname, String birthdate);
     Mono<Book> registerBook(String isbn, String title, int releaseDate, String authorId);
     Mono<Book> registerBook(String isbn, String title, String releaseDate, String authorId);
     Flux<Book> findAllBooks();

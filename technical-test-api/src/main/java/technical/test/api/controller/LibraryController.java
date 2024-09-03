@@ -8,6 +8,7 @@ import technical.test.api.services.LibraryService;
 import technical.test.api.storage.models.Author;
 import technical.test.api.storage.models.Book;
 
+@CrossOrigin(maxAge = 3600)
 @RestController
 @RequestMapping("/library")
 public class LibraryController {
@@ -24,12 +25,18 @@ public class LibraryController {
     }
 
     @RequestMapping( path = "/books" , method = RequestMethod.POST)
-    public Mono<Book> registerBook(String isbn, String title, String releaseDateYear, String authorRefId) {
+    public Mono<Book> registerBook(String isbn, String title, String releaseDateYear, String authorRefId, @RequestBody(required = false) Book book) {
+        if(book != null) {
+            return libraryService.registerBook(book.getIsbn(), book.getTitle(), book.getReleaseDate(), book.getAuthorId());
+        }
         return libraryService.registerBook(isbn, title, releaseDateYear, authorRefId);
     }
 
     @RequestMapping(path = "/authors" , method = RequestMethod.POST)
-    public Mono<Author> registerAuthor(String firstname, String lastname, int birthdate) {
+    public Mono<Author> registerAuthor(String firstname, String lastname, String birthdate, @RequestBody(required = false) Author author) {
+        if(author != null) {
+            return libraryService.registerAuthor(author.getFirstName(), author.getLastName(), author.getBirthDate());
+        }
         return libraryService.registerAuthor(firstname, lastname, birthdate);
     }
 

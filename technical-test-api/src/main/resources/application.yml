@@ -1,2 +1,6 @@
 server:
   port: 18080
+spring:
+  data:
+    mongodb:
+      uri: mongodb://root:pass123@localhost:27017/test?authSource=admin

@@ -5,7 +5,15 @@ import { ref } from 'vue';
 const books = ref([]);
 
 async function fetchBooks() {
-  const response = await fetch("http://localhost:18080/library/books");
+  const response = await fetch("http://localhost:18080/library/books",
+  //handle cors
+  {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+  }
+  );
   books.value = await response.json();
 }
 fetchBooks();
